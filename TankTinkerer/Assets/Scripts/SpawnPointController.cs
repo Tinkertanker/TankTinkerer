@@ -12,10 +12,12 @@ public class SpawnPointController : MonoBehaviour
     public bool m_TanksSpawned;             // Stores whether the game is in progress
     public string m_Team;                   // Stores which team the spawnpoint is on
 	public SerialController m_SerialController;		// Reference to the corresponding serial controller
+	[HideInInspector]
+	public string m_Controller;			// Reference to the control scheme
+
 
     private Vector3 m_OtherFlagPosition;   // Store the position of the opponent's flag
     private GameObject m_OtherFlag;        // Reference to opponent's flag
-	private string m_Controller;			// Reference to the control scheme
 
 	void Start()
     {
@@ -23,13 +25,10 @@ public class SpawnPointController : MonoBehaviour
         if (m_Team == "Red")
         {
             m_OtherFlag = GameObject.FindGameObjectWithTag("BlueFlag");
-			m_Controller = m_GameManager.RedControl;
-
         }
         else
         {
             m_OtherFlag = GameObject.FindGameObjectWithTag("RedFlag");
-			m_Controller = m_GameManager.BlueControl;
         }
         // Store the original position
         m_OtherFlagPosition = m_OtherFlag.transform.position;

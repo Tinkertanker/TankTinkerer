@@ -297,6 +297,10 @@ public class GameManager : MonoBehaviour
 			BlueControl = m_Setup.m_BlueControl.options [m_Setup.m_BlueControl.value].text;
 			RedControl = m_Setup.m_RedControl.options [m_Setup.m_RedControl.value].text;
 
+			// Pass control infomation to SpawnPoints
+			m_SpawnPoints [0].m_Controller = BlueControl;
+			m_SpawnPoints [1].m_Controller = RedControl;
+
 			// Set serialcontroller COM port
 			if (BlueControl != "Keyboard") {
 				m_BlueSerialController.GetComponent<SerialController> ().portName = GetPortName (m_Setup.m_BluePort.text);
