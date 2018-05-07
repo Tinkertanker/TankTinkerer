@@ -4,14 +4,14 @@
 public class TankMovement : MonoBehaviour
 {
     public int m_PlayerNumber = 1;              // Used to identify which tank belongs to which player.  This is set by this tank's manager.
-    public float m_Speed = 12f;                 // How fast the tank moves forward and back.
-    public float m_TurnSpeed = 90f;            // How fast the tank turns in degrees per second.
+	public float m_TurnSpeed = 90f;            // How fast the tank turns in degrees per second.
     public AudioSource m_MovementAudio;         // Reference to the audio source used to play engine sounds. NB: different to the shooting audio source.
     public AudioClip m_EngineIdling;            // Audio to play when the tank isn't moving.
     public AudioClip m_EngineDriving;           // Audio to play when the tank is moving.
     public float m_PitchRange = 0.2f;           // The amount by which the pitch of the engine noises can vary.
     public bool m_HasFlag;                      // Determine whether flag is in possesion
     public GameObject m_SpeedPrefab;           // Reference to the gameobject with the speedlines particle effect
+	public float m_Speed;                // Tank speed with subtractions/additions 
 
     private string m_MovementAxisName;          // The name of the input axis for moving forward and back.
     private string m_TurnAxisName;              // The name of the input axis for turning.
@@ -22,8 +22,9 @@ public class TankMovement : MonoBehaviour
     private ParticleSystem[] m_particleSystems; // References to all the particles systems used by the Tanks
     private SerialController m_SerialController;  //Reference to the serial controller
     private string m_Controller;                  //Reference to control settings
-    private float m_Countdown;                  // Stores the time left of speedboost
-    private ParticleSystem m_SpeedParticles;         // Reference to the particle system activated when tank is sped up
+    private float m_SpeedUpCountdown;             // Stores the time left of speed boost
+	private float m_SpeedDownCountdown; 		 // Stores the time left of slow
+	private ParticleSystem m_SpeedParticles;     // Reference to the particle system activated when tank is sped up
     private int m_PlayerTeamID;                 // Stores whether the player is 0 or 1 in the team 
 
     private void Awake()
@@ -31,14 +32,16 @@ public class TankMovement : MonoBehaviour
         m_Rigidbody = GetComponent<Rigidbody>();
 
         //Initialize the countdown timer
-        m_Countdown = 0f;
+        m_SpeedUpCountdown = 0f;
+		m_SpeedDownCountdown = 0f;
 
         // Instantiate the speed prefab and get a reference to the particle system on it.
         m_SpeedParticles = Instantiate(m_SpeedPrefab).GetComponent<ParticleSystem>();
 
         // Disable the prefab so it can be activated when it's required.
         m_SpeedPrefab.gameObject.SetActive(false);
-    }
+
+	 }
 
 
     private void OnEnable()
@@ -127,25 +130,40 @@ public class TankMovement : MonoBehaviour
             m_TurnInputValue = m_SerialController.m_TurnValues[m_PlayerTeamID];
         }
 
-        if (m_Countdown > 0f)
+        if (m_SpeedUpCountdown > 0f)
         {
-            m_Countdown -= Time.deltaTime;
+            m_SpeedUpCountdown -= Time.deltaTime;
             m_SpeedParticles.transform.position = transform.position;
             m_SpeedParticles.transform.rotation = transform.rotation;
-            if (m_Countdown == 0f)
+            if (m_SpeedUpCountdown == 0f)
             {
                 // In the event the countdown somehow becomes 0
-                m_Countdown = -1f;
+                m_SpeedUpCountdown = -1f;
             }
         }
-        else if (m_Countdown <0f)
+        else if (m_SpeedUpCountdown <0f)
         {
-            m_Speed -= 4f;
-            m_Countdown = 0f;
+			m_Speed -= 4f;
+            m_SpeedUpCountdown = 0f;
             // Stop the speedlines particle system
             m_SpeedParticles.Stop();
             m_SpeedParticles.gameObject.SetActive(false);
         }
+
+		if (m_SpeedDownCountdown > 0f)
+		{
+			m_SpeedDownCountdown -= Time.deltaTime;
+			if (m_SpeedDownCountdown == 0f)
+			{
+				// In the event the countdown somehow becomes 0
+				m_SpeedDownCountdown = -1f;
+			}
+		}
+		else if (m_SpeedDownCountdown <0f)
+		{
+			m_Speed += 6f;
+			m_SpeedDownCountdown = 0f;
+		}
 
         EngineAudio();
 
@@ -191,7 +209,7 @@ public class TankMovement : MonoBehaviour
     private void Move()
     {
         // Create a vector in the direction the tank is facing with a magnitude based on the input, speed and the time between frames.
-        Vector3 movement = transform.forward * m_MovementInputValue * m_Speed * Time.deltaTime;
+		Vector3 movement = transform.forward * m_MovementInputValue * m_Speed * Time.deltaTime;
 
         // Apply this movement to the rigidbody's position.
         m_Rigidbody.MovePosition(m_Rigidbody.position + movement);
@@ -210,12 +228,12 @@ public class TankMovement : MonoBehaviour
         m_Rigidbody.MoveRotation(m_Rigidbody.rotation * turnRotation);
     }
 
-    public void SpeedUp()
+	public void SpeedUp()
     {
-        if (m_Countdown == 0f)
+        if (m_SpeedUpCountdown == 0f)
         {
-            m_Speed += 4f;
-            m_Countdown = 10f;
+			m_Speed += 4f;
+            m_SpeedUpCountdown = 10f;
             // Enable the speed particles
             m_SpeedParticles.gameObject.SetActive(true);
             // Play the speed particles
@@ -226,6 +244,16 @@ public class TankMovement : MonoBehaviour
         }
 
     }
+
+	public void SpeedDown()
+	{
+		if (m_SpeedDownCountdown == 0f)
+		{
+			m_Speed -= 6f;
+			m_SpeedDownCountdown = 10f;
+		}
+
+	}
 
 }
 

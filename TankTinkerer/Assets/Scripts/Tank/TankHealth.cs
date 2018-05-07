@@ -17,12 +17,12 @@ public class TankHealth : MonoBehaviour
     public float m_HealAmount;                          // Stores the amount of health the tank regenerates per tick when on the spawnpoint.
     public bool m_HasFlag;                              // Stores whether the player is in possesion of the flag
 	public int m_PlayerNumber;							// Store the player number
+	public float m_CurrentHealth;                      // How much health the tank currently has.
 
 	private string m_Controller;                        // Reference to control settings
     private AudioSource m_ExplosionAudio;               // The audio source to play when the tank explodes.
     private ParticleSystem m_ExplosionParticles;        // The particle system that will play when the tank is destroyed.
     private ParticleSystem m_SparkleParticles;          // The particle system that will play when the tank is invulnerable
-    private float m_CurrentHealth;                      // How much health the tank currently has.
     private bool m_Dead;                                // Has the tank been reduced beyond zero health yet?
     private ParticleSystem m_HealingParticles;          // The particle system that will play when the tank is healing.
     private float m_Countdown;                          // Stores the time left of invulnerability

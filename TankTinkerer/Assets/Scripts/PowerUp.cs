@@ -56,7 +56,7 @@ public class PowerUp : MonoBehaviour
             }
             else if (gameObject.tag == "Speed")
             {
-                other.GetComponent<TankMovement>().SpeedUp();
+				other.GetComponent<TankMovement>().SpeedUp();
                 //Debug.Log("Player " + other.GetComponent<TankMovement>().m_PlayerNumber + " has obtained speed");
             }
         }

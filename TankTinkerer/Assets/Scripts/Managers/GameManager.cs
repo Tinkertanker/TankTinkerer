@@ -451,4 +451,21 @@ public class GameManager : MonoBehaviour
 			}
 		}
 	}
+
+	// Starts the coroutine to execute ultimate
+	public void AUlti (int playernumber)
+	{
+		StartCoroutine (GlobalKill(playernumber));
+	}
+
+	private IEnumerator GlobalKill (int playernumber)
+	{
+		yield return m_LongWait;
+		for (int i = 0; i < m_Tanks.Length; i++) {
+			if (i % 2 == playernumber % 2 && m_Tanks [i].m_Instance.GetComponent<TankHealth> ().m_CurrentHealth < 40f) {
+				m_Tanks [i].m_Instance.GetComponent<TankHealth> ().TakeDamage (40f);
+			}
+		}
+
+	}
 }
