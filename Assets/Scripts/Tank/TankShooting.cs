@@ -234,7 +234,7 @@ public class TankShooting : MonoBehaviour
 			} 
 		} else {
 			if (m_SerialController.m_Shoots [m_PlayerTeamID] == true && m_SerialController.m_AimValues [m_PlayerTeamID] != 0 && m_SerialController.m_MoveValues [m_PlayerTeamID] != 0 && m_SerialController.m_TurnValues [m_PlayerTeamID] != 0) {
-				if (m_Cooldown == 0) {
+				if (m_UltimateCooldown == 0) {
 					Ultimate ();
 					m_UltimateCooldown = m_UltimateCooldownTime;
 				}
