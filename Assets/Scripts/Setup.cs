@@ -28,17 +28,7 @@ public class Setup : MonoBehaviour
     public InputField m_GameLength;             // Reference to custom game length field
     public Toggle m_CustomLengthToggle;         // Reference to custom game length toggle
     public Text m_GameLengthText;               // Reference to text to display length the game will be
-
-    // Use this for initialization
-    void Start()
-    {
-
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
+    public GameObject m_EndGameButton;          // Reference to button used to quit to menu from the end screen. Using GO so we can use .SetActive()
+    public Dropdown m_PresetSelection;          // Reference to dropdown for selecting game preset
+    public Toggle m_SuddenDeathToggle;          // Reference to toggle for starting in sudden death
 }

@@ -86,6 +86,18 @@ public class GameManager : MonoBehaviour
 	// When all tanks are destroyed at the end of the game we set the camera's targets to this transform until more tanks are spawned.
 	public GameObject pauseScreen;
 	// Reference to the Pause UI (panel).
+	private bool suddenDeathActive;
+	// Used to stop respawning if SD is active.
+
+	public GroupStagePreset gsPreset;
+	// Class to hold preset game length and sudden death timings for group stage
+	public SingleEliminationPreset sePreset;
+	// same as group stage preset but for single elimination
+	private bool roundRunning;
+	// Set true in RoundStarting and false in RoundEnding
+	
+
+	
 
 
 	private void Start ()
@@ -122,7 +134,10 @@ public class GameManager : MonoBehaviour
 			PauseGame();
 		}
 		// Count down
-		m_RemainingTime -= Time.deltaTime;
+		if(roundRunning)
+		{
+			m_RemainingTime -= Time.deltaTime;
+		}
         
 		// If time not up
 		if (m_RemainingTime > 0f) {
@@ -135,20 +150,22 @@ public class GameManager : MonoBehaviour
 			m_PowerUpSpawnTime = m_RemainingTime - Random.Range (15f, 25f);
 		}
 
-        if(m_RemainingTime < SuddenDeathTime && m_RemainingTime > 1f) // for some reason only having remainingtime < SuddenDeathTime would cause the text to display at start, think because remaining time isn't set yet? idk. this works afaik.
-        {
-            m_Setup.m_SuddenDeathText.text = "<color=#ff0000ff>Sudden Death! \nNo more respawns</color>";
-        }
-		if(m_Setup.isActiveAndEnabled && m_Setup.m_CustomLengthToggle)
+
+		if(m_Setup.isActiveAndEnabled)
 		{
-			if(m_Setup.m_CustomLengthToggle.isOn)
+			int presetVal = m_Setup.m_PresetSelection.value;
+			if(presetVal == 0) 
+			{ 
+				m_Setup.m_GameLengthText.text = "Game Length: " + Mathf.Floor (gsPreset.gameLength / 60) + ":" + Mathf.Round (gsPreset.gameLength % 60).ToString ("00");
+			}
+			else if(presetVal == 1)
+			{
+				m_Setup.m_GameLengthText.text = "Game Length: " + Mathf.Floor (sePreset.gameLength / 60) + ":" + Mathf.Round (sePreset.gameLength % 60).ToString ("00");
+			}
+			else if(m_Setup.m_PresetSelection.value == 2)
 			{
 			float.TryParse(m_Setup.m_GameLength.text, out m_CustomGameTime);
 			m_Setup.m_GameLengthText.text = "Game Length: " + Mathf.Floor (m_CustomGameTime / 60) + ":" + Mathf.Round (m_CustomGameTime % 60).ToString ("00");
-			}
-			else
-			{
-				m_Setup.m_GameLengthText.text = "Game Length: " + Mathf.Floor (m_GameTime / 60) + ":" + Mathf.Round (m_GameTime % 60).ToString ("00");
 			}
 		}
 	}
@@ -202,13 +219,41 @@ public class GameManager : MonoBehaviour
 		// Once the 'RoundStarting' coroutine is finished, run the 'RoundPlaying' coroutine but don't return until it's finished.
 		yield return StartCoroutine (RoundPlaying ());
 
-		// Once execution has returned here, run the 'RoundEnding' coroutine, again don't return until it's finished.
-		yield return StartCoroutine (RoundEnding ());
+		//IsGameTied();
 
-		// When the game is over, restart the game.
-		//SceneManager.LoadScene (0); // From older version of game where there was no pausing and restarting was just reloading scene.
-		EndGame();
+		if(IsGameTied() && !suddenDeathActive)
+		{
+			yield return StartCoroutine(SuddenDeath(SuddenDeathTime));
+		}
+		Debug.Log("game not tied");
+		RoundEnding ();
+		//EndGame();
+		
+	}
 
+
+	private IEnumerator SuddenDeath(float suddenDeathExtraTime)
+	{
+		m_Setup.m_SuddenDeathText.text = "<color=#ff0000ff>Sudden Death! \nNo more respawns</color>";
+		suddenDeathActive = true;
+		canBePaused = true;
+		m_RemainingTime = suddenDeathExtraTime;
+		while(m_RemainingTime > 0f)
+		{
+			yield return null;
+		}
+	}
+	
+	private bool IsGameTied()
+	{
+		if(m_BlueTeamScore == m_RedTeamScore)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 
 	private void RemoveTanksFromSpawnpoints()
@@ -233,16 +278,28 @@ public class GameManager : MonoBehaviour
 
 	private IEnumerator RoundStarting ()
 	{
+		roundRunning = true;
 		// As soon as the round starts reset the tanks and make sure they can't move. Also reset the counter
 		ResetAllTanks ();
 		DisableTankControl ();
-		if(m_Setup.m_CustomLengthToggle.isOn)
+		suddenDeathActive = m_Setup.m_SuddenDeathToggle.isOn;
+
+		int presetVal = m_Setup.m_PresetSelection.value;
+
+		if(presetVal == 0)
+		{
+			m_RemainingTime = gsPreset.gameLength;
+			SuddenDeathTime = gsPreset.suddenDeathExtraTime;
+		}
+		else if(presetVal == 1)
+		{
+			m_RemainingTime = sePreset.gameLength;
+			SuddenDeathTime = sePreset.suddenDeathExtraTime;
+		}
+		else if(presetVal == 2)
 		{
 			m_RemainingTime = m_CustomGameTime;
-		}
-		else
-		{
-			m_RemainingTime = m_GameTime;
+			SuddenDeathTime = 30f;
 		}
 		
 
@@ -269,6 +326,10 @@ public class GameManager : MonoBehaviour
 	{
 		// As soon as the round begins playing let the players control the tanks.
 		EnableTankControl ();
+		if(suddenDeathActive)
+		{
+			m_Setup.m_SuddenDeathText.text = "<color=#ff0000ff>Sudden Death! \nNo more respawns</color>";
+		}
 		
 		canBePaused = true;
 
@@ -283,12 +344,14 @@ public class GameManager : MonoBehaviour
 	}
 
 
-	private IEnumerator RoundEnding ()
+	private void RoundEnding ()
 	{
+		roundRunning = false;
 		// Stop tanks from moving.
 		DisableTankControl ();
-
+		m_Setup.m_EndGameButton.SetActive(true);
 		canBePaused = false;
+		StopAllCoroutines();
 
 		m_Setup.m_SuddenDeathText.text = "";
 
@@ -308,7 +371,7 @@ public class GameManager : MonoBehaviour
 		}
 
 		// Wait for the specified length of time until yielding control back to the game loop.
-		yield return m_LongWait;
+		//yield return m_LongWait;
 	}
 
 	private IEnumerator StartGame ()
@@ -411,6 +474,7 @@ public class GameManager : MonoBehaviour
 
 	public void UpdateScore (string team = "")
 	{
+		
 		m_Setup.m_BlueScoreText.text = "" + m_BlueTeamScore;
 		m_Setup.m_RedScoreText.text = "" + m_RedTeamScore;
 
@@ -423,6 +487,10 @@ public class GameManager : MonoBehaviour
 			m_Setup.m_Image.SetActive (true);
 			m_Setup.m_BlueTeamText.text = m_BlueTeamName;
 			m_Setup.m_RedTeamText.text = m_RedTeamName;
+		}
+		if(suddenDeathActive && team == "Red" | team == "Blue")
+		{
+			RoundEnding();
 		}
 	}
 
@@ -467,7 +535,7 @@ public class GameManager : MonoBehaviour
 	// Starts the coroutine to respawn the tank
 	public void Respawn (GameObject tank)
 	{
-        if (m_RemainingTime > SuddenDeathTime) // only starts the coroutine avalanche if there's 30 seconds or less left.
+        if (!suddenDeathActive) // only starts the coroutine avalanche if suddendeath is not active.
         {
             StartCoroutine(RespawnTank(tank));
         }
@@ -573,9 +641,17 @@ public class GameManager : MonoBehaviour
 	// Ending game manually
 	public void EndGame()
 	{
+		m_TankChoices.Clear();
+		canBePaused = false;
+		m_Setup.m_EndGameButton.SetActive(false);
 		m_Setup.m_Image.SetActive (false);
 		StopAllCoroutines();
-		StartCoroutine(RoundEnding());
+		DisableTankControl();
+		suddenDeathActive = false;
+		for (int i = 0; i < m_SpawnPoints.Length; i++) 
+		{
+			m_SpawnPoints [i].m_TanksSpawned = false;
+		}		
 		m_CameraControl.m_Targets = cameraTargetTemp;
 		RemoveTanksFromSpawnpoints();
 		KillAllTanks();
@@ -586,5 +662,39 @@ public class GameManager : MonoBehaviour
 		m_Setup.m_RedScoreText.text = "";
 		m_Setup.m_BlueTeamText.text = "";
 		m_Setup.m_RedTeamText.text = "";
+		m_Setup.m_SuddenDeathText.text = "";
+	}
+
+	public void OnGamePresetChanged()
+	{
+		int presetVal = m_Setup.m_PresetSelection.value;
+		if(presetVal == 2)
+		{
+			m_Setup.m_GameLength.interactable = true;
+			m_Setup.m_SuddenDeathToggle.interactable = true;
+		}
+		else
+		{
+			m_Setup.m_GameLength.interactable = false;
+			m_Setup.m_SuddenDeathToggle.interactable = false;
+			m_Setup.m_SuddenDeathToggle.isOn = false;
+
+		}
+		
+	}
+
+	[System.Serializable]
+	public class GroupStagePreset
+	{
+		public float gameLength = 240f;
+		public float suddenDeathExtraTime = 30f;
+
+	}
+
+	[System.Serializable]
+	public class SingleEliminationPreset
+	{
+		public float gameLength = 360f;
+		public float suddenDeathExtraTime = 120f;
 	}
 }
