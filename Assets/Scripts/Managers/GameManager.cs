@@ -441,6 +441,7 @@ public class GameManager : MonoBehaviour
 				
 				m_BlueSerialController.GetComponent<SerialController> ().portName = GetPortName (m_Setup.m_BluePort.text);
 				m_BlueSerialController.SetActive (true);
+				Debug.Log(m_Setup.m_BluePort.text);
 			}
 			if (RedControl != "Keyboard") {
 				
@@ -663,6 +664,8 @@ public class GameManager : MonoBehaviour
 		m_Setup.m_BlueTeamText.text = "";
 		m_Setup.m_RedTeamText.text = "";
 		m_Setup.m_SuddenDeathText.text = "";
+		m_BlueSerialController.SetActive(false);
+		m_RedSerialController.SetActive(false);
 	}
 
 	public void OnGamePresetChanged()

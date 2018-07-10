@@ -134,7 +134,7 @@ public class SerialController : MonoBehaviour
             Debug.Log("Connection attempt failed or disconnection detected");
         else
         {
-            // Debug.Log("Message arrived: " + message);
+             Debug.Log("Message arrived: " + message);
             // Set some local float variables equal to the value of our Horizontal and Vertical Inputs
             if (message.Contains("A"))
             {
