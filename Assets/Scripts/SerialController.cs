@@ -124,6 +124,7 @@ public class SerialController : MonoBehaviour
     {
         // Read the next message from the queue
         string message = (string)serialThread.ReadMessage();
+//        Debug.Log(message);
 
         if (message == null)
             return;
@@ -134,7 +135,7 @@ public class SerialController : MonoBehaviour
             Debug.Log("Connection attempt failed or disconnection detected");
         else
         {
-             Debug.Log("Message arrived: " + message);
+            // Debug.Log("Message arrived: " + message);
             // Set some local float variables equal to the value of our Horizontal and Vertical Inputs
             if (message.Contains("A"))
             {
@@ -174,6 +175,7 @@ public class SerialController : MonoBehaviour
             }
             if (message.Contains("X"))
             {
+                Debug.Log(message);
                 m_Shoots[0] = true;
             }
             else
