@@ -124,6 +124,7 @@ public class SerialController : MonoBehaviour
     {
         // Read the next message from the queue
         string message = (string)serialThread.ReadMessage();
+//        Debug.Log(message);
 
         if (message == null)
             return;
@@ -174,6 +175,7 @@ public class SerialController : MonoBehaviour
             }
             if (message.Contains("X"))
             {
+                Debug.Log(message);
                 m_Shoots[0] = true;
             }
             else

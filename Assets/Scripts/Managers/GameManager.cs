@@ -52,7 +52,7 @@ public class GameManager : MonoBehaviour
 	// Used to store the time when the next power up should be spawned.
 	public float SuddenDeathTime = 30f;
 	// For changing sudden death start time (seconds)
-
+	
 	private string m_BlueTeamName;
 	// Used to store the team name
 	private string m_RedTeamName;
@@ -95,6 +95,9 @@ public class GameManager : MonoBehaviour
 	// same as group stage preset but for single elimination
 	private bool roundRunning;
 	// Set true in RoundStarting and false in RoundEnding
+
+	private string bluePort, redPort;
+	// Storing each team's port numbers so can properly restart serial controllers if they're changed.
 	
 
 	
@@ -437,15 +440,23 @@ public class GameManager : MonoBehaviour
 			m_SpawnPoints [1].m_Controller = RedControl;
 
 			// Set serialcontroller COM port
-			if (BlueControl != "Keyboard") {
-				
+			if (BlueControl != "Keyboard" && GetPortName(m_Setup.m_BluePort.text) != bluePort) {
+				if(m_BlueSerialController.activeInHierarchy)
+				{
+					m_BlueSerialController.SetActive(false);
+				}
 				m_BlueSerialController.GetComponent<SerialController> ().portName = GetPortName (m_Setup.m_BluePort.text);
 				m_BlueSerialController.SetActive (true);
+				bluePort = GetPortName(m_Setup.m_BluePort.text);
 			}
-			if (RedControl != "Keyboard") {
-				
+			if (RedControl != "Keyboard" && GetPortName(m_Setup.m_RedPort.text) != redPort) {
+				if(m_RedSerialController.activeInHierarchy)
+				{
+					m_RedSerialController.SetActive(false);
+				}
 				m_RedSerialController.GetComponent<SerialController> ().portName = GetPortName (m_Setup.m_RedPort.text);
 				m_RedSerialController.SetActive (true);
+				redPort = GetPortName(m_Setup.m_RedPort.text);
 			}
 
 
@@ -663,6 +674,8 @@ public class GameManager : MonoBehaviour
 		m_Setup.m_BlueTeamText.text = "";
 		m_Setup.m_RedTeamText.text = "";
 		m_Setup.m_SuddenDeathText.text = "";
+		// m_BlueSerialController.SetActive(false);
+		// m_RedSerialController.SetActive(false);
 	}
 
 	public void OnGamePresetChanged()
@@ -682,6 +695,7 @@ public class GameManager : MonoBehaviour
 		}
 		
 	}
+
 
 	[System.Serializable]
 	public class GroupStagePreset
