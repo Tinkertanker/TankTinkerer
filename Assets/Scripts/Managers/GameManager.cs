@@ -148,7 +148,7 @@ public class GameManager : MonoBehaviour
 		}
         
 		// If time to spawn powerup
-		if (m_RemainingTime < m_PowerUpSpawnTime) {
+		if (m_RemainingTime < m_PowerUpSpawnTime && m_PowerUpSpawnTime > 0) {
 			SpawnPowerUp ();
 			m_PowerUpSpawnTime = m_RemainingTime - Random.Range (15f, 25f);
 		}
@@ -313,6 +313,7 @@ public class GameManager : MonoBehaviour
 
 		//Start PowerUp counter
 		m_PowerUpSpawnTime = m_RemainingTime - Random.Range (5f, 20f);
+		// Debug.Log(m_PowerUpSpawnTime);
 
 		// Snap the camera's zoom and position to something appropriate for the reset tanks.
 		m_CameraControl.SetStartPositionAndSize ();

@@ -4,8 +4,13 @@ using UnityEngine;
 
 public class PowerUp : MonoBehaviour
 {
+    private GameManager manager;
     private float m_Countdown; //Stores the time left for the powerup
-    // Use this for initialization
+
+    private void Awake()
+    {
+        manager = FindObjectOfType<GameManager>();
+    }
     void Start()
     {
         m_Countdown = 30f;
@@ -39,7 +44,7 @@ public class PowerUp : MonoBehaviour
         else if (other.gameObject.layer != 9)
         {
             m_Countdown = -1f;
-            GameObject.Find("GameManager").GetComponent<GameManager>().m_PowerUpSpawnTime += 30f;
+           manager.m_PowerUpSpawnTime += 30f;
         }
         else if (other.gameObject.layer == 9)
         {
